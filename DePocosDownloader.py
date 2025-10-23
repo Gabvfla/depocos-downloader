@@ -1,11 +1,3 @@
-"""
-DePoços Downloader - Aplicativo Desktop com Interface Gráfica
-Feito com ❤️ por GabrielDePoços
-Requer: 
-- pip install yt-dlp PyQt5
-- FFmpeg incluído ou instalado no PATH
-"""
-
 import sys
 import os
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
@@ -171,8 +163,6 @@ class YouTubeDownloader(QMainWindow):
     def inicializar_ui(self):
         self.setWindowTitle("DePoços Downloader")
         self.setGeometry(100, 100, 750, 680)
-        
-        # Estilo principal
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -258,20 +248,13 @@ class YouTubeDownloader(QMainWindow):
         layout = QVBoxLayout(central_widget)
         layout.setSpacing(12)
         layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Header com imagem de fundo
         header_frame = QFrame()
-        
-        # Verifica se existe imagem de fundo
         if getattr(sys, 'frozen', False):
             base_path = sys._MEIPASS
         else:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-        
-        logo_path = os.path.join(base_path, 'logo_fundo.png')
-        
+            base_path = os.path.dirname(os.path.abspath(__file__))       
+        logo_path = os.path.join(base_path, 'logo_fundo.png')        
         if os.path.exists(logo_path):
-            # Com imagem de fundo
             header_frame.setStyleSheet(f"""
                 QFrame {{
                     background-image: url({logo_path.replace(chr(92), '/')});
@@ -283,7 +266,6 @@ class YouTubeDownloader(QMainWindow):
                 }}
             """)
         else:
-            # Sem imagem de fundo (fallback)
             header_frame.setStyleSheet("""
                 QFrame {
                     background-color: rgba(118, 75, 162, 0.9);
@@ -293,14 +275,10 @@ class YouTubeDownloader(QMainWindow):
             """)
         
         header_layout = QVBoxLayout(header_frame)
-        
-        # Logo emoji
         logo = QLabel("🎬")
         logo.setAlignment(Qt.AlignCenter)
         logo.setStyleSheet("font-size: 50px; background: transparent;")
         header_layout.addWidget(logo)
-        
-        # Título
         titulo = QLabel("DePoços Downloader")
         titulo_font = QFont()
         titulo_font.setPointSize(24)
@@ -309,16 +287,11 @@ class YouTubeDownloader(QMainWindow):
         titulo.setAlignment(Qt.AlignCenter)
         titulo.setStyleSheet("color: white; background: transparent; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);")
         header_layout.addWidget(titulo)
-        
-        # Subtítulo
         subtitulo = QLabel("Baixe vídeos e músicas do YouTube com qualidade")
         subtitulo.setAlignment(Qt.AlignCenter)
         subtitulo.setStyleSheet("color: rgba(255, 255, 255, 0.95); font-size: 13px; background: transparent;")
-        header_layout.addWidget(subtitulo)
-        
+        header_layout.addWidget(subtitulo)  
         layout.addWidget(header_frame)
-        
-        # URL Input
         url_group = QGroupBox("🔗 URL do Vídeo")
         url_layout = QVBoxLayout()
         self.url_input = QLineEdit()
@@ -327,21 +300,20 @@ class YouTubeDownloader(QMainWindow):
         url_layout.addWidget(self.url_input)
         url_group.setLayout(url_layout)
         layout.addWidget(url_group)
-        
-        # Tipo e Qualidade
+
         tipo_qualidade_layout = QHBoxLayout()
-        
         tipo_group = QGroupBox("🎯 Tipo de Download")
         tipo_layout = QVBoxLayout()
+
         self.radio_video = QRadioButton("📹 Vídeo")
         self.radio_audio = QRadioButton("🎵 Áudio (MP3)")
         self.radio_video.setChecked(True)
         self.radio_video.toggled.connect(self.atualizar_qualidade_options)
+
         tipo_layout.addWidget(self.radio_video)
         tipo_layout.addWidget(self.radio_audio)
         tipo_group.setLayout(tipo_layout)
-        tipo_qualidade_layout.addWidget(tipo_group)
-        
+        tipo_qualidade_layout.addWidget(tipo_group) 
         qualidade_group = QGroupBox("⚙️ Qualidade")
         qualidade_layout = QVBoxLayout()
         self.qualidade_combo = QComboBox()
@@ -358,11 +330,8 @@ class YouTubeDownloader(QMainWindow):
         self.qualidade_combo.setMinimumHeight(40)
         qualidade_layout.addWidget(self.qualidade_combo)
         qualidade_group.setLayout(qualidade_layout)
-        tipo_qualidade_layout.addWidget(qualidade_group)
-        
+        tipo_qualidade_layout.addWidget(qualidade_group)    
         layout.addLayout(tipo_qualidade_layout)
-        
-        # Pasta de destino
         pasta_group = QGroupBox("📁 Pasta de Destino")
         pasta_layout = QHBoxLayout()
         self.pasta_label = QLabel(self.pasta_destino)
@@ -382,22 +351,16 @@ class YouTubeDownloader(QMainWindow):
         pasta_layout.addWidget(pasta_btn)
         pasta_group.setLayout(pasta_layout)
         layout.addWidget(pasta_group)
-        
-        # Barra de progresso
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
         self.progress_bar.setMinimumHeight(30)
         self.progress_bar.setTextVisible(True)
         layout.addWidget(self.progress_bar)
-        
-        # Log de status
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
         self.log_text.setMaximumHeight(100)
         self.log_text.setPlaceholderText("Status do download aparecerá aqui...")
         layout.addWidget(self.log_text)
-        
-        # Botão de download
         self.download_btn = QPushButton("⬇️  BAIXAR AGORA")
         self.download_btn.setMinimumHeight(50)
         self.download_btn.setStyleSheet("""
@@ -424,25 +387,20 @@ class YouTubeDownloader(QMainWindow):
         """)
         self.download_btn.clicked.connect(self.iniciar_download)
         layout.addWidget(self.download_btn)
-        
-        # Rodapé
         rodape_frame = QFrame()
         rodape_frame.setStyleSheet("background: transparent;")
         rodape_layout = QVBoxLayout(rodape_frame)
-        rodape_layout.setSpacing(5)
-        
+        rodape_layout.setSpacing(5)     
         rodape1 = QLabel("Feito com ❤️ por GabrielDePoços")
         rodape1.setAlignment(Qt.AlignCenter)
         rodape1.setStyleSheet("color: white; font-size: 13px; font-weight: bold;")
-        
         rodape2 = QLabel("Requer FFmpeg instalado | v1.0")
         rodape2.setAlignment(Qt.AlignCenter)
-        rodape2.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 10px;")
-        
+        rodape2.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 10px;")   
         rodape_layout.addWidget(rodape1)
         rodape_layout.addWidget(rodape2)
         layout.addWidget(rodape_frame)
-        
+  
     def atualizar_qualidade_options(self):
         if self.radio_audio.isChecked():
             self.qualidade_combo.setEnabled(False)

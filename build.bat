@@ -18,8 +18,8 @@ if %errorlevel% neq 0 (
 )
 
 echo [1/5] Verificando arquivos necessários...
-if not exist "youtube_downloader_gui.py" (
-    echo ❌ Erro: youtube_downloader_gui.py não encontrado!
+if not exist "DePocosDownloader.py" (
+    echo ❌ Erro: DePocosDownloader.py não encontrado!
     pause
     exit /b 1
 )
@@ -52,6 +52,7 @@ python -m PyInstaller --onefile --windowed --noconsole ^
 --add-binary "ffprobe.exe;." ^
 --icon "icone.ico" ^
 --name "DePoçosDownloader" ^
+--add-data "logo_fundo.png;." ^
 --clean ^
 DePocosDownloader.py
 

@@ -54,7 +54,7 @@ downloads/
 *.mp3
 *.webm
 
-# FFmpeg (não versionar os binários grandes)
+# FFmpeg 
 # ffmpeg.exe
 # ffprobe.exe
 
