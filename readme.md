@@ -8,8 +8,6 @@
 
 Um downloader moderno e elegante para YouTube com interface gráfica intuitiva, desenvolvido em Python com PyQt5.
 
-![DePoços Downloader](https://via.placeholder.com/800x400/5D3A9B/FFFFFF?text=DePoços+Downloader)
-
 ---
 
 ## ✨ Recursos
