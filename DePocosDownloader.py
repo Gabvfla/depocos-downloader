@@ -14,12 +14,14 @@ import yt_dlp
 # ---------------------------------------------------------------------------
 
 def base_path() -> str:
+    """Retorna o diretório base, compatível com PyInstaller."""
     if getattr(sys, 'frozen', False):
         return sys._MEIPASS
     return os.path.dirname(os.path.abspath(__file__))
 
 
 def configurar_ffmpeg():
+    """Adiciona ffmpeg/ffprobe ao ambiente se estiverem na pasta do app."""
     bp = base_path()
     for nome in ('ffmpeg.exe', 'ffprobe.exe'):
         caminho = os.path.join(bp, nome)
@@ -67,22 +69,16 @@ class DownloadThread(QThread):
             'progress_hooks': [self.progresso_hook],
             'quiet': True,
             'no_warnings': True,
-            'http_headers': {
-                'User-Agent': (
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                    'AppleWebKit/537.36 (KHTML, like Gecko) '
-                    'Chrome/120.0.0.0 Safari/537.36'
-                ),
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-us,en;q=0.5',
-                'Sec-Fetch-Mode': 'navigate',
-            },
+            # Tenta múltiplos clientes em ordem; tv_embedded e ios
+            # contornam bloqueios regionais e de age-gate na maioria dos casos.
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'],
-                    'player_skip': ['webpage', 'configs'],
+                    'player_client': ['tv_embedded', 'ios', 'android', 'web'],
                 }
             },
+            # Não aborta na primeira indisponibilidade — tenta os fallbacks acima.
+            'ignoreerrors': False,
+            'geo_bypass': True,
         }
         if 'FFMPEG_BINARY' in os.environ:
             opcoes['ffmpeg_location'] = os.path.dirname(os.environ['FFMPEG_BINARY'])
@@ -126,6 +122,14 @@ class DownloadThread(QThread):
             msg = str(e)
             if 'cancelado' in msg.lower():
                 self.concluido.emit(False, "⚠️ Download cancelado.")
+            elif 'not available' in msg.lower() or 'unavailable' in msg.lower():
+                self.concluido.emit(False,
+                    "❌ Este vídeo não está disponível na sua região ou foi removido.\n\n"
+                    "Dicas:\n"
+                    "• Tente outro vídeo\n"
+                    "• Use uma VPN se o vídeo for bloqueado regionalmente\n"
+                    f"\nDetalhe técnico: {msg}"
+                )
             else:
                 self.concluido.emit(False, f"Erro: {msg}")
 

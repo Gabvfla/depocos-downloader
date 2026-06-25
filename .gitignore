@@ -57,6 +57,7 @@ downloads/
 # FFmpeg 
 # ffmpeg.exe
 # ffprobe.exe
+# DePocosDownloader.exe
 
 # Logs
 *.log
