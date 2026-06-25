@@ -14,14 +14,12 @@ import yt_dlp
 # ---------------------------------------------------------------------------
 
 def base_path() -> str:
-    """Retorna o diretório base, compatível com PyInstaller."""
     if getattr(sys, 'frozen', False):
         return sys._MEIPASS
     return os.path.dirname(os.path.abspath(__file__))
 
 
 def configurar_ffmpeg():
-    """Adiciona ffmpeg/ffprobe ao ambiente se estiverem na pasta do app."""
     bp = base_path()
     for nome in ('ffmpeg.exe', 'ffprobe.exe'):
         caminho = os.path.join(bp, nome)
