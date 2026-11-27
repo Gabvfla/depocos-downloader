@@ -17,8 +17,8 @@ FFmpeg e FFprobe são necessários e já estão neste repositório. São procura
 ## Usar
 
 1. Cole o link completo de um vídeo. “Ver detalhes” consulta título, autor e duração sem baixar.
-2. Escolha vídeo e resolução máxima, ou áudio MP3 de 192 kbps.
-3. Escolha a pasta e clique em “Baixar arquivo”.
+2. Escolha “Vídeo” ou “Áudio MP3”. Em “Opções”, você pode trocar a pasta e ajustar a qualidade máxima do vídeo.
+3. Clique em “Baixar vídeo” ou “Baixar MP3”. Enter no campo do link também inicia o download.
 4. Use “Abrir pasta” ao terminar. A pasta de um download concluído fica salva nas preferências.
 
 Vídeo usa a melhor opção até a resolução escolhida, com preferência por H.264/AAC. Arquivos separados são unidos em MKV para aceitar os codecs disponíveis; arquivos já combinados mantêm o contêiner original. A qualidade selecionada é um limite, não uma promessa de disponibilidade. Os nomes incluem o ID para evitar colisão entre títulos iguais. Não há suporte a playlists.
@@ -31,7 +31,7 @@ Cancelar é cooperativo: aguarda a próxima resposta de rede ou o fim de um subp
 .venv\Scripts\python -m pip install --upgrade "yt-dlp[default]"
 ```
 
-Ou execute `atualizar.bat`. Para uma cópia compilada, gere um novo pacote depois da atualização. Não há atualização automática do executável. Erros de login, região, remoção ou bloqueio da plataforma ainda podem ocorrer; veja “Mostrar diagnóstico”. O aplicativo não importa cookies do navegador.
+Ou execute `atualizar.bat`. Para uma cópia compilada, gere um novo pacote depois da atualização. Não há atualização automática do executável. Erros de login, região, remoção ou bloqueio da plataforma ainda podem ocorrer. Consulte “Diagnóstico” no painel de atividade. O aplicativo não importa cookies do navegador.
 
 ## Gerar executável
 

@@ -1,42 +1,33 @@
-# DESIGN.md: DePoços Downloader
+# Interface do DePoços Downloader
 
-## 1. Product truth
-Ferramenta desktop para salvar vídeos individuais e áudio. Público: usuário Windows, português brasileiro. Manter Python/PyQt5, nome, ícone e funções de qualidade/pasta. Sucesso: download finalizado sem bloquear a interface, com resultado compreensível.
+Janela escura e compacta de 464 px, com cantos de 20 px, cabeçalho arrastável e
+abertura no canto superior direito da área de trabalho. O formato segue a janela
+do Poços Hub. O campo de link, a escolha de formato e o botão de download ficam
+visíveis na janela inicial.
 
-## 2. Design Read
-Superfície operate, linguagem compacta de utilitário desktop. Dials V3 M1 D7. Referência fornecida pelo usuário: MainWindow.xaml do Poços Hub.
+Em **Opções**, a qualidade máxima aparece para vídeo. A pasta de destino fica
+disponível para os dois formatos. O painel de atividade aparece quando há
+consulta, download ou erro. O diagnóstico fica recolhido até ser solicitado.
 
-## 3. Direção visual
-Fundo escuro e roxo da referência, alinhamento à esquerda, hierarquia por tipografia e espaçamento. Roxo é identidade explícita do Poços Hub, não um gradiente decorativo. Sem hero, emojis decorativos ou métricas inventadas.
+## Movimento
 
-## 4. Tokens
-```design-tokens
-fonts: Segoe UI
-colors: #170F28, #F7F3FF, #AEA0C9, #211337, #604081, #AD7DFF, #7547DD, #322044, #46305F, #FFFFFF, #8E64F3
-radii: 0, 4px, 6px, 12px
-```
-Fundo #170F28, superfícies #211337, texto #F7F3FF, texto secundário #AEA0C9. #7547DD marca a ação principal. #AD7DFF identifica a marca, progresso e foco. Demais roxos: contornos e estados.
+O pacote instalado do Volum 0.10.0.0 declara entrada de 300 ms com
+`cubic-bezier(.16, 1, .3, 1)`, saída de 120 ms e entrada com deslocamento e
+opacidade em `wwwroot/style.css`. O código distribuído em `wwwroot/app.js`
+aplica as classes de animação ao painel. A inspeção estática do pacote no REA
+está registrada em
+`ev_66f5c84147edb12fd1a52b96f29d9921bdf12483c052910e40c10d5267e3302c`.
 
-## 5. Tipografia
-Fonte Segoe UI nativa do Windows. Texto 14px, título de mídia 18px e marca 28px. Pesos regular, semibold e bold para hierarquia sem imagens decorativas.
+O Downloader aplica a curva a uma entrada de 10 px com opacidade e à expansão
+dos painéis. O recolhimento e o fechamento pelo botão da janela duram 120 ms.
+Ao inverter um painel em movimento, a próxima transição parte da altura atual.
+As transições respeitam a configuração de animações do Windows.
 
-## 6. Espaçamento e layout
-Escala 4/8/12/16/24/32. Janela inicial 780x720; mínimo 520x580. Conteúdo rolável para diagnóstico e escalas maiores do Windows. Duas colunas apenas para formato/qualidade.
+O seletor de formato usa um indicador deslizante. O indicador e o retorno dos
+botões ao soltar usam uma mola amortecida com rigidez 260 e amortecimento 22,
+valores do exemplo de interação fornecido. O efeito é desenhado dentro dos
+controles, mantendo fixas as áreas clicáveis e a disposição da janela.
 
-## 7. Componentes
-Controles com raio 6px; preview com 12px; progresso com 4px. Um botão primário, ações secundárias com contorno. Textos externos sempre em modo plain text.
-
-## 8. Motion
-Sem animações decorativas. Progresso indeterminado apenas durante consultas e conversão reais.
-
-## 9. Conteúdo
-Título, autor e duração vêm do extrator. Não criar miniaturas falsas. Mensagens em português e diagnóstico técnico sob demanda.
-
-## 10. Do / Don't
-Preservar foco visível e navegação por teclado. Não bloquear a interface com chamadas de rede. Não declarar sucesso antes da finalização do FFmpeg.
-
-## 11. Decision log
-2026-10-27: adotar paleta do Poços Hub fornecido pelo usuário. Manter janela nativa redimensionável para acessibilidade. Separar worker da UI. MKV permite unir codecs sem prometer MP4 para todo conteúdo; explicar o contêiner na tela.
-
-## 12. Referências
-Poços Hub local (MainWindow.xaml). Skill antiwebslop, aplicada aos princípios visuais compatíveis com PyQt5; validação por renderização Qt, pois não é uma página web.
+O seletor de qualidade usa abertura gradual e rotação da seta, inspiradas
+no [Inline Disclosure Menu](https://ui.watermelon.sh/animated-components/inline-disclosure-menu).
+A lista marca a resolução aplicada e mantém a navegação de teclado do Qt.

@@ -51,7 +51,7 @@ def test_preview_is_async_and_close_waits_for_worker():
         try:
             for _ in range(100):
                 QTest.qWait(10)
-                if entered.is_set():
+                if entered.is_set() and ticks:
                     break
             assert entered.is_set()
             assert ticks
