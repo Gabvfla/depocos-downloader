@@ -24,7 +24,9 @@ def test_valid_url():
 def test_quality_limit_applies_to_fallback(tmp_path):
     with patch('downloader.executable', return_value='/bin/ffmpeg'):
         options = download_options(tmp_path, 720)
-    assert options['format'] == 'bv*[height<=720]+ba/b[height<=720]'
+    assert options['format'] == (
+        'bv*[height<=720]+ba/b[height<=720]/bv[height<=720]/b[height<=?720]/bv[height<=?720]'
+    )
     assert 'extractor_args' not in options
     assert options['noplaylist']
     assert '%(id)s' in options['outtmpl']
@@ -52,7 +54,7 @@ def test_playlist_rejected_before_processing(tmp_path):
     worker = Worker('https://example.com/playlist', str(tmp_path))
     results = []
     worker.result.connect(lambda *args: results.append(args))
-    with patch('downloader.yt_dlp.YoutubeDL') as fake, patch('downloader.executable', return_value='/bin/ffmpeg'):
+    with patch('yt_dlp.YoutubeDL') as fake, patch('downloader.executable', return_value='/bin/ffmpeg'):
         ydl = fake.return_value.__enter__.return_value
         ydl.extract_info.return_value = {'_type': 'playlist', 'entries': [{}]}
         worker.run()
@@ -64,7 +66,7 @@ def test_download_failure_never_reports_success(tmp_path):
     worker = Worker('https://example.com/video', str(tmp_path))
     results = []
     worker.result.connect(lambda *args: results.append(args))
-    with patch('downloader.yt_dlp.YoutubeDL') as fake, patch('downloader.executable', return_value='/bin/ffmpeg'):
+    with patch('yt_dlp.YoutubeDL') as fake, patch('downloader.executable', return_value='/bin/ffmpeg'):
         ydl = fake.return_value.__enter__.return_value
         ydl.extract_info.return_value = {'title': 'A video'}
         ydl.process_ie_result.side_effect = RuntimeError('disk full')
@@ -75,6 +77,6 @@ def test_download_failure_never_reports_success(tmp_path):
 def test_precancelled_worker_never_starts_network():
     worker = Worker('https://example.com/video')
     worker.cancel()
-    with patch('downloader.yt_dlp.YoutubeDL') as fake:
+    with patch('yt_dlp.YoutubeDL') as fake:
         worker.run()
         fake.assert_not_called()

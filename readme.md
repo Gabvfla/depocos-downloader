@@ -21,14 +21,25 @@ FFmpeg e FFprobe são necessários e já estão neste repositório. São procura
 3. Clique em “Baixar vídeo” ou “Baixar MP3”. Enter no campo do link também inicia o download.
 4. Use “Abrir pasta” ao terminar. A pasta de um download concluído fica salva nas preferências.
 
-Vídeo usa a melhor opção até a resolução escolhida, com preferência por H.264/AAC. Arquivos separados são unidos em MKV para aceitar os codecs disponíveis; arquivos já combinados mantêm o contêiner original. A qualidade selecionada é um limite, não uma promessa de disponibilidade. Os nomes incluem o ID para evitar colisão entre títulos iguais. Não há suporte a playlists.
+No Windows, use **Ctrl+Alt+K** para abrir a janela enquanto o aplicativo está
+na bandeja. O botão × recolhe a janela e deixa os downloads em andamento.
+Clique com o botão direito no ícone da bandeja para escolher **Iniciar com o
+Windows** ou **Sair**. A inicialização automática abre somente o ícone.
+
+Aceita links diretos de mídia e páginas de vídeo ou áudio em plataformas como
+YouTube, Vimeo, Dailymotion, TikTok, Instagram, Reddit e SoundCloud, conforme
+o [suporte do yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md).
+Para fontes apenas de áudio, escolha **Áudio MP3**. Os links são processados
+localmente pelo aplicativo.
+
+Vídeo dá prioridade às opções que informam uma resolução dentro do limite escolhido, com preferência por H.264/AAC. Quando a fonte não informa resolução, o arquivo pode ser salvo na qualidade original. Arquivos separados são unidos em MKV para aceitar os codecs disponíveis. Os nomes incluem o ID para evitar colisão entre títulos iguais. Use links de itens individuais.
 
 Cancelar é cooperativo: aguarda a próxima resposta de rede ou o fim de um subprocesso do FFmpeg. Fechar a janela solicita cancelamento e só fecha depois que a thread termina. Arquivos parciais podem permanecer para retomada.
 
 ## Atualizar o motor
 
 ```powershell
-.venv\Scripts\python -m pip install --upgrade "yt-dlp[default]"
+.venv\Scripts\python -m pip install --upgrade "yt-dlp[default,curl-cffi]"
 ```
 
 Ou execute `atualizar.bat`. Para uma cópia compilada, gere um novo pacote depois da atualização. Não há atualização automática do executável. Erros de login, região, remoção ou bloqueio da plataforma ainda podem ocorrer. Consulte “Diagnóstico” no painel de atividade. O aplicativo não importa cookies do navegador.

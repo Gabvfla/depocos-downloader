@@ -45,7 +45,7 @@ def test_preview_is_async_and_close_waits_for_worker():
     timer = QTimer()
     timer.timeout.connect(lambda: ticks.append(1))
     timer.start(10)
-    with patch('downloader.yt_dlp.YoutubeDL') as fake:
+    with patch('yt_dlp.YoutubeDL') as fake:
         fake.return_value.__enter__.return_value.extract_info.side_effect = slow_extract
         window.preview()
         try:
@@ -68,3 +68,37 @@ def test_preview_is_async_and_close_waits_for_worker():
             timer.stop()
         assert window.worker is None
         assert not window.isVisible()
+
+
+def test_tray_close_keeps_worker_running():
+    entered, release = threading.Event(), threading.Event()
+
+    def slow_extract(*args, **kwargs):
+        entered.set()
+        release.wait(3)
+        return {'title': 'Test'}
+
+    window = YouTubeDownloader(stay_in_tray=True)
+    window.show()
+    window.url_input.setText('https://example.com/video')
+    with patch('yt_dlp.YoutubeDL') as fake:
+        service = fake.return_value.__enter__.return_value
+        service.extract_info.side_effect = slow_extract
+        service.process_ie_result.return_value = {'title': 'Test'}
+        window.preview()
+        try:
+            assert entered.wait(1)
+            window.close()
+            assert not window.isVisible()
+            assert not window.worker.cancel_event.is_set()
+        finally:
+            release.set()
+            for _ in range(100):
+                QTest.qWait(10)
+                if window.worker is None:
+                    break
+        assert window.worker is None
+        window.show()
+        assert window.media_title.text() == 'Test'
+    window.stay_in_tray = False
+    window.close()

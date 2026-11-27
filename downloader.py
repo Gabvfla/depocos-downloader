@@ -7,7 +7,6 @@ import traceback
 from threading import Event
 from urllib.parse import urlsplit
 from PyQt5.QtCore import QThread, pyqtSignal
-import yt_dlp
 
 
 def base_path():
@@ -59,7 +58,11 @@ def download_options(folder, height=None, audio=False):
             'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}])
     else:
         limit = f'[height<={int(height)}]' if height else ''
-        options.update(format=f'bv*{limit}+ba/b{limit}', merge_output_format='mkv',
+        formats = f'bv*{limit}+ba/b{limit}/bv{limit}'
+        if height:
+            unknown_height = f'[height<=?{int(height)}]'
+            formats += f'/b{unknown_height}/bv{unknown_height}'
+        options.update(format=formats, merge_output_format='mkv',
                        format_sort=['vcodec:h264', 'acodec:aac'])
     return options
 
@@ -108,11 +111,13 @@ class Worker(QThread):
     def run(self):
         try:
             self.check_cancel()
+            from yt_dlp import YoutubeDL
+
             url = validate_url(self.url)
             options = download_options(self.folder, self.height, self.audio) if self.folder else common_options()
             options.update(progress_hooks=[self.hook], postprocessor_hooks=[self.post_hook], logger=self)
             self.status.emit('Buscando informações…')
-            with yt_dlp.YoutubeDL(options) as ydl:
+            with YoutubeDL(options) as ydl:
                 info = ydl.extract_info(url, download=False, process=False)
                 self.check_cancel()
                 if not info or info.get('_type') in ('playlist', 'multi_video'):
@@ -121,7 +126,10 @@ class Worker(QThread):
             self.check_cancel()
             if not info or info.get('_type') in ('playlist', 'multi_video'):
                 raise ValueError('Use o link de um vídeo individual. Playlists não são suportadas.')
-            self.metadata.emit({key: info.get(key) for key in ('title', 'uploader', 'duration')})
+            metadata = {key: info.get(key) for key in ('title', 'uploader', 'duration')}
+            host = urlsplit(info.get('webpage_url') or url).hostname
+            metadata['source'] = host.removeprefix('www.') if host else None
+            self.metadata.emit(metadata)
             self.result.emit(True, 'Download concluído. Arquivo salvo na pasta escolhida.' if self.folder else 'Informações carregadas.')
         except Exception as exc:
             for error in getattr(exc, 'unexpected_errors', []):

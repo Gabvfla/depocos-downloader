@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
 )
 
 from downloader import Worker, base_path, validate_url
+from desktop import SHORTCUT, Desktop, set_startup
 
 
 STYLE = """
@@ -410,9 +411,10 @@ class Disclosure(QWidget):
 
 
 class YouTubeDownloader(QMainWindow):
-    def __init__(self):
+    def __init__(self, stay_in_tray=False):
         super().__init__()
         self.worker = None
+        self.stay_in_tray = stay_in_tray
         self.closing = False
         self.result_folder = None
         self.first_show = True
@@ -426,6 +428,8 @@ class YouTubeDownloader(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet(STYLE)
         self.window_motion = QVariantAnimation(self)
+        self.window_motion.valueChanged.connect(self.animate_window)
+        self.window_motion.finished.connect(self.finish_window_motion)
 
         shell = QFrame()
         shell.setObjectName('shell')
@@ -448,7 +452,8 @@ class YouTubeDownloader(QMainWindow):
         bar.addWidget(title, 1)
         for text, name, role, action in (
             ('−', 'Minimizar', 'chrome', self.showMinimized),
-            ('×', 'Fechar', 'close', self.request_close),
+            ('×', f'Recolher para a bandeja · {SHORTCUT}' if self.stay_in_tray else 'Fechar',
+             'close', self.request_close),
         ):
             control = button(text, action, role)
             control.setFixedSize(32, 32)
@@ -488,7 +493,7 @@ class YouTubeDownloader(QMainWindow):
         link_row = QHBoxLayout()
         self.url_input = QLineEdit()
         self.url_input.setAccessibleName('Link do vídeo')
-        self.url_input.setPlaceholderText('Cole aqui o link do vídeo')
+        self.url_input.setPlaceholderText('Cole um link do YouTube, TikTok, Vimeo…')
         self.url_input.setClearButtonEnabled(True)
         self.url_input.setFixedHeight(42)
         self.url_input.textChanged.connect(self.reset_activity)
@@ -644,15 +649,19 @@ class YouTubeDownloader(QMainWindow):
             self.window_motion.setEasingCurve(panel_easing())
             self.window_motion.setStartValue(0.0)
             self.window_motion.setEndValue(1.0)
-            self.window_motion.valueChanged.connect(self.animate_opening)
             self.window_motion.start()
 
-    def animate_opening(self, opacity):
+    def animate_window(self, opacity):
         self.setWindowOpacity(opacity)
-        # Apply only the change in offset so dragging never resets the position.
-        offset = round(10 * (1 - opacity))
-        self.move(self.pos() + QPoint(0, offset - self.opening_offset))
-        self.opening_offset = offset
+        if not self.closing:
+            # Apply only the change in offset so dragging never resets the position.
+            offset = round(10 * (1 - opacity))
+            self.move(self.pos() + QPoint(0, offset - self.opening_offset))
+            self.opening_offset = offset
+
+    def finish_window_motion(self):
+        if self.closing:
+            self.close()
 
     def drag_window(self, event):
         if event.button() == Qt.LeftButton and self.windowHandle():
@@ -666,13 +675,10 @@ class YouTubeDownloader(QMainWindow):
             return
         self.closing = True
         self.window_motion.stop()
-        self.window_motion.valueChanged.disconnect(self.animate_opening)
         self.window_motion.setDuration(120)
         self.window_motion.setEasingCurve(QEasingCurve.InQuad)
         self.window_motion.setStartValue(self.windowOpacity())
         self.window_motion.setEndValue(0.0)
-        self.window_motion.valueChanged.connect(self.setWindowOpacity)
-        self.window_motion.finished.connect(self.close)
         self.window_motion.start()
 
     def toggle_options(self, opened):
@@ -826,7 +832,8 @@ class YouTubeDownloader(QMainWindow):
             minutes, seconds = divmod(int(duration), 60)
             hours, minutes = divmod(minutes, 60)
             time = f'{hours}:{minutes:02d}:{seconds:02d}' if hours else f'{minutes}:{seconds:02d}'
-        self.set_line(self.media_detail, f"{data.get('uploader') or 'Autor não informado'} · {time}")
+        details = [data.get('source'), data.get('uploader'), time]
+        self.set_line(self.media_detail, ' · '.join(part for part in details if part))
 
     def on_result(self, success, message):
         downloaded = success and bool(self.worker.folder)
@@ -867,7 +874,13 @@ class YouTubeDownloader(QMainWindow):
             self.set_status('Cancelando… A etapa em andamento precisa terminar.')
 
     def closeEvent(self, event):
-        if self.worker:
+        if self.stay_in_tray:
+            self.window_motion.stop()
+            self.hide()
+            self.closing = False
+            self.setWindowOpacity(1)
+            event.ignore()
+        elif self.worker:
             self.closing = True
             self.cancel()
             event.ignore()
@@ -882,9 +895,13 @@ def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     app.setFont(QFont('Segoe UI', 10))
-    window = YouTubeDownloader()
-    window.show()
-    sys.exit(app.exec_())
+    if '--enable-startup' in sys.argv:
+        sys.exit(0 if sys.platform == 'win32' and set_startup(True) else 1)
+    icon = QIcon(str(base_path() / 'icone.ico'))
+    app.setWindowIcon(icon)
+    desktop = Desktop(app, YouTubeDownloader, icon)
+    if desktop.start('--background' in sys.argv):
+        sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
